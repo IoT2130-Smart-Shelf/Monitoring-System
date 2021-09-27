@@ -1,3 +1,11 @@
+"""Monitoring System Smart Shelf
+
+Members:
+    - Juan Sebastián Barreto Jimenéz
+    - Carolina María Burgos Anillo
+    - Edwin Alejandro Caicedo Palacios
+"""
+
 # Imports of the necessary libraries
 import paho.mqtt.publish as publish
 import ssl

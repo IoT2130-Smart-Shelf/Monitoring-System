@@ -1,3 +1,11 @@
+"""Monitoring System Smart Shelf
+
+Members:
+    - Juan Sebastián Barreto Jimenéz
+    - Carolina María Burgos Anillo
+    - Edwin Alejandro Caicedo Palacios
+"""
+
 #   Function: laser_linearization() 
 #   Purpose: Linearize the laser sensor
 #   Argument:
