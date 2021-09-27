@@ -53,10 +53,10 @@ while True:
         # Read laser sensor
         distance_laser = laser_linearization(laser_sensor.range)
 
-        if first_send:
-            time_finish = time.time()
+        #if first_send:
+        #    time_finish = time.time()
 
-        if((distance_laser < 810) and (time_finish - time_init >= 15)):
+        if distance_laser < 810 #and time_finish - time_init >= 15)):
             first_send = True
             print("Laser Sensor Range: {0}cm".format(distance_laser))
 
@@ -103,7 +103,7 @@ while True:
             print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
 
             # Send data to thingSpeak by mqtt
-            time_init = time.time()
+            #time_init = time.time()
             print(send_mqtt_thingsSpeak(distance_ultrasound_one, distance_ultrasound_two, distance_ultrasound_three, distance_laser))
 
     except (KeyboardInterrupt):

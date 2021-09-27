@@ -15,7 +15,7 @@ from picamera import PiCamera
 import threading                # modulo para implementacion de temporizadores
 from picamera import PiCamera   # modulo para el manejo de la camara raspberry
 import os                       # modulo para el borrado de archivos
-import paramiko    # libreria para poder utilizar el protocolo SSHv2 entre las raspbrerys
+import paramiko                 # libreria para poder utilizar el protocolo SSHv2 entre las raspbrerys
 
 def sftp_upload_file(host, port, user, password, server_path, local_path, timeout=10):
     '''
@@ -106,22 +106,23 @@ def printit():
     None.
 
     '''
-    threading.Timer(5, printit).start()    # se inicializa el timer
-    time = currentTime()                   # Genero el texto de la hora
-    date = currentDate()                   # Genero el texto de la fecha
-    # Se realiza la captura de la imagen
-    camera.capture('/home/pi/Desktop/ImagenesEstante/EstanteDD'+str(date)+'HH'+str(time)+'.jpg')
-    # Se realiza la transferencia del archivo por SSH
-    sftp_upload_file('192.168.20.61',22,'pi','carolina',
-                        '/home/pi/Desktop/ImagesCamera/EstanteDD'+str(date)+'HH'+str(time)+'.jpg',
-                        '/home/pi/Desktop/ImagenesEstante/EstanteDD'+str(date)+'HH'+str(time)+'.jpg')
-    # Se elimina el archivo luego del envio
-    os.remove('/home/pi/Desktop/ImagenesEstante/EstanteDD'+str(date)+'HH'+str(time)+'.jpg')
-    print("Imagen enviada al nodo")
+    try:
+        threading.Timer(5, printit).start()    # se inicializa el timer
+        time = currentTime()                   # Genero el texto de la hora
+        date = currentDate()                   # Genero el texto de la fecha
+        # Se realiza la captura de la imagen
+        camera.capture('/home/pi/Desktop/ImagenesEstante/EstanteDD'+str(date)+'HH'+str(time)+'.jpg')
+        # Se realiza la transferencia del archivo por SSH
+        sftp_upload_file('192.168.20.61',22,'pi','carolina',
+                            '/home/pi/Desktop/ImagesCamera/EstanteDD'+str(date)+'HH'+str(time)+'.jpg',
+                            '/home/pi/Desktop/ImagenesEstante/EstanteDD'+str(date)+'HH'+str(time)+'.jpg')
+        # Se elimina el archivo luego del envio
+        os.remove('/home/pi/Desktop/ImagenesEstante/EstanteDD'+str(date)+'HH'+str(time)+'.jpg')
+        print("Imagen enviada al nodo")
+    except (KeyboardInterrupt):
+        exit()
 
 camera.capture('/home/pi/Desktop/ImagenesEstante/estante.jpg')
 os.remove('/home/pi/Desktop/ImagenesEstante/estante.jpg')
-try:
-    printit()   # se ejecuta iteradamente el temporizador
-except (KeyboardInterrupt):
-    exit()
+
+printit()   # se ejecuta iteradamente el temporizador
