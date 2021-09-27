@@ -43,6 +43,7 @@ GPIO.setup(ECHO_THREE, GPIO.IN)
 
 while True:
     try:
+        GPIO.setmode(GPIO.BCM)
         # Read laser sensor
         distance_laser = laser_linearization(laser_sensor.range)
 
@@ -106,10 +107,10 @@ while True:
 
             print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
 
+            #GPIO.cleanup()
+
             # Send data to thingSpeak by mqtt
             send_mqtt_thingsSpeak(distance_ultrasound_one, distance_ultrasound_two, distance_ultrasound_three, distance_laser)
 
     except (KeyboardInterrupt):
         break
-    finally:
-        GPIO.cleanup()
