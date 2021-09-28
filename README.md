@@ -17,7 +17,7 @@ To use it you need to install dependencies in python:<br />
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adafruit-circuitpython-vl53l0x <br />
 <br />
 Commands to install dependencies:<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numpy: python3 -m pip install paramiko<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;paramiko: python3 -m pip install paramiko<br />
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;paho-mqtt: python3 -m pip install paho-mqtt<br />
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adafruit-circuitpython-vl53l0x: python3 -m pip install adafruit-circuitpython-vl53l0x
 
