@@ -45,6 +45,48 @@ GPIO.setup(ECHO_TWO, GPIO.IN)
 GPIO.setup(TRIG_THREE, GPIO.OUT)
 GPIO.setup(ECHO_THREE, GPIO.IN)
 
+# Read ultrasound sensor one
+GPIO.output(TRIG_ONE, GPIO.LOW)
+time.sleep(2)
+GPIO.output(TRIG_ONE, GPIO.HIGH)
+time.sleep(0.00001)
+GPIO.output(TRIG_ONE, GPIO.LOW)
+while GPIO.input(ECHO_ONE)==0:
+    pulse_start_one = time.time()
+while GPIO.input(ECHO_ONE)==1:
+    pulse_end_one = time.time()
+pulse_duration_one = pulse_end_one - pulse_start_one
+distance_ultrasound_one_init = round(pulse_duration_one*17150,2)
+#print("Distance Ultrasound One: ", distance_ultrasound_one," cm")
+
+# Read ultrasound sensor two
+GPIO.output(TRIG_TWO, GPIO.LOW)
+time.sleep(2)
+GPIO.output(TRIG_TWO, GPIO.HIGH)
+time.sleep(0.00001)
+GPIO.output(TRIG_TWO, GPIO.LOW)
+while GPIO.input(ECHO_TWO)==0:
+    pulse_start_two = time.time()
+while GPIO.input(ECHO_TWO)==1:
+    pulse_end_two = time.time()
+pulse_duration_two = pulse_end_two - pulse_start_two
+distance_ultrasound_two_init = round(pulse_duration_two*17150,2)
+#print("Distance Ultrasound Two: ", distance_ultrasound_two," cm")
+
+# Read ultrasound sensor three
+GPIO.output(TRIG_THREE, GPIO.LOW)
+time.sleep(2)
+GPIO.output(TRIG_THREE, GPIO.HIGH)
+time.sleep(0.00001)
+GPIO.output(TRIG_THREE, GPIO.LOW)
+while GPIO.input(ECHO_THREE)==0:
+    pulse_start_three = time.time()
+while GPIO.input(ECHO_THREE)==1:
+    pulse_end_three = time.time()
+pulse_duration_three = pulse_end_three - pulse_start_three
+distance_ultrasound_three_init = round(pulse_duration_three*17150,2)
+#print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
+
 while True:
     try:
         GPIO.setmode(GPIO.BCM)
@@ -67,7 +109,11 @@ while True:
                 pulse_end_one = time.time()
             pulse_duration_one = pulse_end_one - pulse_start_one
             distance_ultrasound_one = round(pulse_duration_one*17150,2)
-            #print("Distance Ultrasound One: ", distance_ultrasound_one," cm")
+            dif1 = distance_ultrasound_one-distance_ultrasound_one_init
+            if abs(dif1) > 2:
+                u1_off = 1
+            else: 
+                u1_off = 0
 
             # Read ultrasound sensor two
             GPIO.output(TRIG_TWO, GPIO.LOW)
@@ -81,7 +127,11 @@ while True:
                 pulse_end_two = time.time()
             pulse_duration_two = pulse_end_two - pulse_start_two
             distance_ultrasound_two = round(pulse_duration_two*17150,2)
-            #print("Distance Ultrasound Two: ", distance_ultrasound_two," cm")
+            dif2 = distance_ultrasound_two-distance_ultrasound_two_init
+            if abs(dif2) > 2:
+                u2_off = 1
+            else: 
+                u2_off = 0
 
             # Read ultrasound sensor three
             GPIO.output(TRIG_THREE, GPIO.LOW)
@@ -95,7 +145,11 @@ while True:
                 pulse_end_three = time.time()
             pulse_duration_three = pulse_end_three - pulse_start_three
             distance_ultrasound_three = round(pulse_duration_three*17150,2)
-            #print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
+            dif3 = distance_ultrasound_three-distance_ultrasound_three_init
+            if abs(dif3) > 3:
+                u3_off = 1
+            else: 
+                u3_off = 0
 
             # Send data to thingSpeak by mqtt
             time_init = time.time()
