@@ -7,8 +7,9 @@ Members:
 """
 
 # Imports of the necessary libraries
-from mqtt_thingspeak import send_mqtt_thingsSpeak
-from Laser_Sensor.laser_linear import laser_linearization
+import paho.mqtt.publish as publish
+import ssl
+from firebase import firebase
 import adafruit_vl53l0x as av
 import busio
 import RPi.GPIO as GPIO
@@ -45,6 +46,59 @@ GPIO.setup(ECHO_TWO, GPIO.IN)
 # Ultrasound sensor three
 GPIO.setup(TRIG_THREE, GPIO.OUT)
 GPIO.setup(ECHO_THREE, GPIO.IN)
+
+# Functions
+
+#   Function: laser_linearization() 
+#   Purpose: Linearize the laser sensor
+#   Argument:
+#       data: Measured distance
+#   Return:
+#       Linearized measured distance
+def laser_linearization(data):
+    if data > 8100:
+        return 8190/10
+    elif data < 310:
+        data_l = (0.9393*data - 23.943)/10
+        return round(data_l,2)
+    elif data < 500:
+        data_l = (1.0238*data - 50.087)/10
+        return round(data_l,2)
+    elif data < 860:
+        data_l = (1.2657*data - 189.03)/10
+        return round(data_l,2)
+    elif data < 1010:
+        data_l = (0.8114*data+279.98)/10
+        return round(data_l,2)
+    else: 
+        data_l = (0.0385*data + 1125.7)/10
+        return round(data_l,2)
+
+#   Function: send_mqtt_thingsSpeak() 
+#   Purpose: Send data from two fields by mqtt to thingspeak
+#   Argument:
+#       distanceSound: Measured distance by ultrasound sensor
+#       distanceLaser: Measured distance by laser sensor
+#   Return:
+#       Confirmation or error message
+def send_mqtt_thingsSpeak(distanceSoundOne, distanceSoundTwo, distanceSoundThree, distanceLaser):
+    tTransport = "websockets" # Protocol comunication
+    tTLS = {'ca_certs':"/etc/ssl/certs/ca-certificates.crt",'tls_version':ssl.PROTOCOL_TLSv1} # Security for comunication by MQTT
+    tPort = 443 # Port for MQTT
+    channelID = "1481979" # Channel ID of ThingSpeak
+    writeApiKey = "R6KP5RUYDZOS6XKO" # Write API Key of ThingSpeak
+    mqttHost = "mqtt.thingspeak.com" # Host of ThingSpeak
+    topic = "channels/" + channelID + "/publish/" + writeApiKey # Topic of MQTT for ThingSpeak
+
+    # build the payload string
+    tPayload = "field1=" + str(distanceSoundOne) + "&field2=" + str(distanceSoundTwo)  + "&field3=" + str(distanceSoundThree)  + "&field4=" + str(distanceLaser)
+    
+    # attempt to publish this data to the topic
+    try:
+        publish.single(topic, payload=tPayload, hostname=mqttHost, port=tPort, tls=tTLS, transport=tTransport)
+        return "Datos enviados"
+    except (Exception):
+        return "Hubo un error al publicar los datos."
 
 while True:
     try:

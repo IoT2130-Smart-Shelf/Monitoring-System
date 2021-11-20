@@ -7,7 +7,6 @@ Members:
 """
 
 # Imports of the necessary libraries
-from mqtt_thingspeak import send_mqtt_thingsSpeak
 import paho.mqtt.publish as publish
 import ssl
 from firebase import firebase
