@@ -6,10 +6,6 @@ Members:
     - Edwin Alejandro Caicedo Palacios
 """
 
-# Imports of the necessary libraries
-import paho.mqtt.publish as publish
-import ssl
-
 #   Function: send_mqtt_thingsSpeak() 
 #   Purpose: Send data from two fields by mqtt to thingspeak
 #   Argument:

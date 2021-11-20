@@ -15,6 +15,33 @@ import busio
 import RPi.GPIO as GPIO
 import time
 
+# Definition of classes
+class Producto:
+    def __init__(self, data):
+        self.cantidad = data['Cantidad']
+        self.fabricante = data['Fabricante']
+        self.id = data['Id']
+        self.imagen = data['Imagen']
+        self.nombre = data['Nombre']
+        self.precio = data['Precio']
+        self.tamano = data['Tamano']
+        self.unidadMedida = data['UnidadMedida']
+    
+    def __str__(self):
+        print("Producto", self.id)
+        print("    Cantidad =", self.cantidad)
+        print("    Fabricante =", self.fabricante)
+        print("    Imagen =", self.imagen)
+        print("    Nombre =", self.nombre)
+        print("    Precio =", self.precio)
+        print("    Tamano =", self.tamano)
+        print("    UnidadMedida =", end=" ")
+        return self.unidadMedida
+
+# Use firebase
+firebaseDB= firebase.FirebaseApplication("https://smart-shelf-44c69-default-rtdb.firebaseio.com/", None)
+productos = []
+
 # Time limit of data transfer to ThingSpeak
 time_init = 0
 time_finish = 15
@@ -74,6 +101,27 @@ def laser_linearization(data):
         data_l = (0.0385*data + 1125.7)/10
         return round(data_l,2)
 
+#   Function: readUltrasoundSensor() 
+#   Purpose: Read distance from Ultrasound Sensor
+#   Argument:
+#       trig: Pin of TRIG
+#       echo: Pin of ECHO
+#   Return:
+#       distance in cm
+def readUltraSoundSensor(trig, echo):
+    # Read ultrasound sensor
+    GPIO.output(trig, GPIO.LOW)
+    time.sleep(2)
+    GPIO.output(trig, GPIO.HIGH)
+    time.sleep(0.00001)
+    GPIO.output(trig, GPIO.LOW)
+    while GPIO.input(echo)==0:
+        pulse_start_one = time.time()
+    while GPIO.input(echo)==1:
+        pulse_end_one = time.time()
+    pulse_duration_one = pulse_end_one - pulse_start_one
+    return round(pulse_duration_one*17150,2)
+
 #   Function: send_mqtt_thingsSpeak() 
 #   Purpose: Send data from two fields by mqtt to thingspeak
 #   Argument:
@@ -100,6 +148,21 @@ def send_mqtt_thingsSpeak(distanceSoundOne, distanceSoundTwo, distanceSoundThree
     except (Exception):
         return "Hubo un error al publicar los datos."
 
+#   Function: downloadDataDB() 
+#   Purpose: Download data of productos from Firebase Realtime DB
+#   Argument:
+#       void
+#   Return:
+#       void
+def downloadDataDB():
+    resultData = firebaseDB.get('/Tiendas/MaxiDespensa/Productos/', '')
+    productos = []
+    for data in resultData.values():
+        producto = Producto(data)
+        productos.append(producto)
+
+downloadDataDB() # download data from firebase first time
+
 while True:
     try:
         GPIO.setmode(GPIO.BCM)
@@ -107,57 +170,22 @@ while True:
         # Read laser sensor
         distance_laser = laser_linearization(laser_sensor.range)
 
-        #if first_send:
-        #    time_finish = time.time()
-
-        if distance_laser < 64: #and time_finish - time_init >= 15)):
-            first_send = True
+        if distance_laser < 64:
             print("Laser Sensor Range: {0}cm".format(distance_laser))
 
             # Read ultrasound sensor one
-            GPIO.output(TRIG_ONE, GPIO.LOW)
-            time.sleep(2)
-            GPIO.output(TRIG_ONE, GPIO.HIGH)
-            time.sleep(0.00001)
-            GPIO.output(TRIG_ONE, GPIO.LOW)
-            while GPIO.input(ECHO_ONE)==0:
-                pulse_start_one = time.time()
-            while GPIO.input(ECHO_ONE)==1:
-                pulse_end_one = time.time()
-            pulse_duration_one = pulse_end_one - pulse_start_one
-            distance_ultrasound_one = round(pulse_duration_one*17150,2)
+            distance_ultrasound_one = readUltraSoundSensor(TRIG_ONE, ECHO_ONE)
             print("Distance Ultrasound One: ", distance_ultrasound_one," cm")
 
             # Read ultrasound sensor two
-            GPIO.output(TRIG_TWO, GPIO.LOW)
-            time.sleep(2)
-            GPIO.output(TRIG_TWO, GPIO.HIGH)
-            time.sleep(0.00001)
-            GPIO.output(TRIG_TWO, GPIO.LOW)
-            while GPIO.input(ECHO_TWO)==0:
-                pulse_start_two = time.time()
-            while GPIO.input(ECHO_TWO)==1:
-                pulse_end_two = time.time()
-            pulse_duration_two = pulse_end_two - pulse_start_two
-            distance_ultrasound_two = round(pulse_duration_two*17150,2)
+            distance_ultrasound_two = readUltraSoundSensor(TRIG_TWO, ECHO_TWO)
             print("Distance Ultrasound Two: ", distance_ultrasound_two," cm")
 
             # Read ultrasound sensor three
-            GPIO.output(TRIG_THREE, GPIO.LOW)
-            time.sleep(2)
-            GPIO.output(TRIG_THREE, GPIO.HIGH)
-            time.sleep(0.00001)
-            GPIO.output(TRIG_THREE, GPIO.LOW)
-            while GPIO.input(ECHO_THREE)==0:
-                pulse_start_three = time.time()
-            while GPIO.input(ECHO_THREE)==1:
-                pulse_end_three = time.time()
-            pulse_duration_three = pulse_end_three - pulse_start_three
-            distance_ultrasound_three = round(pulse_duration_three*17150,2)
+            distance_ultrasound_three = readUltraSoundSensor(TRIG_THREE, ECHO_THREE)
             print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
 
             # Send data to thingSpeak by mqtt
-            #time_init = time.time()
             print(send_mqtt_thingsSpeak(distance_ultrasound_one, distance_ultrasound_two, distance_ultrasound_three, distance_laser))
 
     except (KeyboardInterrupt):
