@@ -1,4 +1,5 @@
 """Monitoring System Smart Shelf
+
 Members:
     - Juan Sebastián Barreto Jimenéz
     - Carolina María Burgos Anillo
@@ -52,8 +53,12 @@ while True:
         # Read laser sensor
         distance_laser = laser_linearization(laser_sensor.range)
 
-        if (distance_laser < 810) and (time_finish - time_init >= 15):
-            #print("Laser Sensor Range: {0}cm".format(distance_laser))
+        #if first_send:
+        #    time_finish = time.time()
+
+        if distance_laser < 64: #and time_finish - time_init >= 15)):
+            first_send = True
+            print("Laser Sensor Range: {0}cm".format(distance_laser))
 
             # Read ultrasound sensor one
             GPIO.output(TRIG_ONE, GPIO.LOW)
@@ -67,7 +72,7 @@ while True:
                 pulse_end_one = time.time()
             pulse_duration_one = pulse_end_one - pulse_start_one
             distance_ultrasound_one = round(pulse_duration_one*17150,2)
-            #print("Distance Ultrasound One: ", distance_ultrasound_one," cm")
+            print("Distance Ultrasound One: ", distance_ultrasound_one," cm")
 
             # Read ultrasound sensor two
             GPIO.output(TRIG_TWO, GPIO.LOW)
@@ -81,7 +86,7 @@ while True:
                 pulse_end_two = time.time()
             pulse_duration_two = pulse_end_two - pulse_start_two
             distance_ultrasound_two = round(pulse_duration_two*17150,2)
-            #print("Distance Ultrasound Two: ", distance_ultrasound_two," cm")
+            print("Distance Ultrasound Two: ", distance_ultrasound_two," cm")
 
             # Read ultrasound sensor three
             GPIO.output(TRIG_THREE, GPIO.LOW)
@@ -95,14 +100,11 @@ while True:
                 pulse_end_three = time.time()
             pulse_duration_three = pulse_end_three - pulse_start_three
             distance_ultrasound_three = round(pulse_duration_three*17150,2)
-            #print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
+            print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
 
             # Send data to thingSpeak by mqtt
-            time_init = time.time()
-            first_send = True
-            send_mqtt_thingsSpeak(distance_ultrasound_one, distance_ultrasound_two, distance_ultrasound_three, distance_laser)
+            #time_init = time.time()
+            print(send_mqtt_thingsSpeak(distance_ultrasound_one, distance_ultrasound_two, distance_ultrasound_three, distance_laser))
 
-        if first_send and (time_finish - time_init < 15):
-            time_finish = time.time()
     except (KeyboardInterrupt):
         break
