@@ -1,5 +1,4 @@
 """Monitoring System Smart Shelf
-
 Members:
     - Juan Sebastián Barreto Jimenéz
     - Carolina María Burgos Anillo
@@ -9,11 +8,13 @@ Members:
 # Imports of the necessary libraries
 import paho.mqtt.publish as publish
 import ssl, smtplib
-from firebase import firebase
+import os
+#from firebase import firebase
 import adafruit_vl53l0x as av
 import busio
 import RPi.GPIO as GPIO
 import time
+import serial
 
 # Definition of classes
 class Producto:
@@ -39,7 +40,7 @@ class Producto:
         return self.unidadMedida
 
 # Use firebase
-firebaseDB= firebase.FirebaseApplication("https://smart-shelf-44c69-default-rtdb.firebaseio.com/", None)
+#firebaseDB= firebase.FirebaseApplication("https://smart-shelf-44c69-default-rtdb.firebaseio.com/", None)
 productos = []
 
 # Time limit of data transfer to ThingSpeak
@@ -50,9 +51,12 @@ first_send = False
 # Initialize number pins of I2C for Laser Sensor
 SCL = 3
 SDA = 2
-
+# Initialize pins for SELECT in demux for serial comms
+SELECT_A = 16
+SELECT_B = 20
 # Initialize I2C bus and sensor.
 i2c = busio.I2C(SCL, SDA)
+
 laser_sensor = av.VL53L0X(i2c)
 
 # Initialize numeric pins for ultrasound sensors
@@ -73,6 +77,10 @@ GPIO.setup(ECHO_TWO, GPIO.IN)
 # Ultrasound sensor three
 GPIO.setup(TRIG_THREE, GPIO.OUT)
 GPIO.setup(ECHO_THREE, GPIO.IN)
+#SELECT for DEMUX, UART tx is pin 8
+GPIO.setup(SELECT_A, GPIO.OUT)
+GPIO.setup(SELECT_B, GPIO.OUT)
+
 
 # Functions
 
@@ -175,6 +183,50 @@ def sendAlert(email_string, alerta):
         server.login(email_from, password)
         server.sendmail(email_from, email_to, message)
 
+#   Function: sendtoscreen() 
+#   Purpose: Update information on price tag
+#   Argument: 
+#       data -> list with [name,price,quantity, measurement unit]
+#       nscreen -> screen to update
+#   Return:
+#       void
+def sendtoscreen(nscreen):
+
+    if nscreen == 3:
+        #SELECT Y0
+        GPIO.output(SELECT_A, GPIO.LOW)
+        GPIO.output(SELECT_B, GPIO.LOW)
+
+    if nscreen == 2:
+        #SELECT Y1
+        GPIO.output(SELECT_A, GPIO.HIGH)
+        GPIO.output(SELECT_B, GPIO.LOW)
+
+    if nscreen == 1:
+        #SELECT Y2
+        GPIO.output(SELECT_A, GPIO.LOW)
+        GPIO.output(SELECT_B, GPIO.HIGH)
+
+
+con = serial.Serial(
+
+    port='/dev/ttyS0',
+    baudrate=9600,
+    parity=serial.PARITY_NONE,
+    stopbits=serial.STOPBITS_ONE,
+    bytesize=serial.EIGHTBITS,
+)
+#Set end of file
+eof = b'"\xFF\xFF\xFF'
+data = ['Chocoramo','$1500','30','g']
+sendtoscreen(3)
+#write text to each field
+con.write(b'name.txt="' + str(data[0]).encode() + eof)
+con.write(b'price.txt="' + str(data[1]).encode() + eof)
+con.write(b'size.txt="' + str(data[2]).encode() + eof)
+con.write(b'unit.txt="' + str(data[3]).encode() + eof)
+
+'''
 downloadDataDB() # download data from firebase first time
 
 # Initial Measure
@@ -240,3 +292,4 @@ while True:
 
     except (KeyboardInterrupt):
         break
+        '''
