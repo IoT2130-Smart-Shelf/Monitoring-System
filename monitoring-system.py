@@ -8,7 +8,7 @@ Members:
 
 # Imports of the necessary libraries
 import paho.mqtt.publish as publish
-import ssl
+import smtplib, ssl
 from firebase import firebase
 import adafruit_vl53l0x as av
 import busio
@@ -99,6 +99,20 @@ def send_mqtt_thingsSpeak(distanceSoundOne, distanceSoundTwo, distanceSoundThree
         return "Datos enviados"
     except (Exception):
         return "Hubo un error al publicar los datos."
+    
+def sendAlert(email_string, alerta):
+    if alerta == 2:
+        subject = "ALERTA PRODUCTO MAL UBICADO"
+    else:
+        subject = "ALERTA EXISTENCIAS AGOTADAS"
+    email_from = 'smart.shelf.iot2021@gmail.com'
+    password = 'SMARTshelf2021'
+    email_to = 'jsebastian.barretoj99@gmail.com'
+    message = 'Subject: {}\n\n{}'.format(subject, email_string)
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        server.login(email_from, password)
+        server.sendmail(email_from, email_to, message)
 
 while True:
     try:
