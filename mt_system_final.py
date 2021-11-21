@@ -14,6 +14,7 @@ import adafruit_vl53l0x as av
 import busio
 import RPi.GPIO as GPIO
 import time
+import requests
 
 # Definition of classes
 class Producto:
@@ -38,8 +39,8 @@ class Producto:
         print("    UnidadMedida =", end=" ")
         return self.unidadMedida
 
-# Use firebase
-firebaseDB= firebase.FirebaseApplication("https://smart-shelf-44c69-default-rtdb.firebaseio.com/", None)
+# Use DB ThingsSpeaks
+URL = "https://api.thingspeak.com/channels/1481979/fields/5.json?api_key=OMYOWXFY0A7RIFJB"
 productos = []
 
 # Time limit of data transfer to ThingSpeak
@@ -155,10 +156,24 @@ def send_mqtt_thingsSpeak(distanceSoundOne, distanceSoundTwo, distanceSoundThree
 #   Return:
 #       void
 def downloadDataDB():
-    resultData = firebaseDB.get('/Tiendas/MaxiDespensa/Productos/', '')
-    productos = []
-    for data in resultData.values():
-        producto = Producto(data)
+    productos.clear()
+    r = requests.get(url = URL)
+    data = r.json() # extracting data in json format
+    dataDict = {}
+    token = "/t/"
+    for dataT in data['feeds']:
+        print("\nH\n")
+        listData = dataT['field5'].split(token)
+        print("Lista: ",listData)
+        dataDict['Cantidad'] = listData[0]
+        dataDict['Fabricante'] = listData[1]
+        dataDict['Id'] = listData[2]
+        dataDict['Imagen'] = listData[3]
+        dataDict['Nombre'] = listData[4]
+        dataDict['Precio'] = listData[5]
+        dataDict['Tamano'] = listData[6]
+        dataDict['UnidadMedida'] = listData[7]
+        producto = Producto(dataDict)
         productos.append(producto)
 
 def sendAlert(email_string, alerta):
