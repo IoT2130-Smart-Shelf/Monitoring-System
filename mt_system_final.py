@@ -167,12 +167,12 @@ def sendFlag():
     topic = "channels/" + channelID + "/publish/" + writeApiKey # Topic of MQTT for ThingSpeak
 
     # build the payload string
-    tPayload = "field4=" + str(0)
+    tPayload = "field4=" + str(2)
 
     # attempt to publish this data to the topic
     try:
         publish.single(topic, payload=tPayload, hostname=mqttHost, port=tPort, tls=tTLS, transport=tTransport)
-        return "Datos enviados"
+        return "bandera bajada"
     except (Exception):
         return "Hubo un error al publicar los datos."
 
@@ -189,7 +189,7 @@ def receiveFlag():
 #   Return:
 #       void
 def downloadDataDB():
-    sendFlag()
+    print(sendFlag())
     cantProducts = []
     if len(productos) == 0:
         cantProducts.append(0)
@@ -310,7 +310,8 @@ while True:
             flag_control = receiveFlag()
 
         end_time_db = time.perf_counter()
-        if end_time_db - initial_time_db > 600 or flag_control == 1: # each 10 minutes in prototype
+        #print('flag_control: ', flag_control)
+        if end_time_db - initial_time_db > 600 or flag_control == '1': # each 10 minutes in prototype
             initial_time_db = end_time_db
             downloadDataDB()
             sendScreens()
