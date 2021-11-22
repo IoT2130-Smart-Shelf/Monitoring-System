@@ -10,7 +10,7 @@ Sistema de monitoreo para el control de los productos de una estantería para et
 **Carolina María Burgos Anillo** - *Equipo principal* - [cmba-alt ](https://github.com/cmba-alt)<br />
 **Edwin Alejandro Caidedo Palacios** - *Equipo principal* - [Edwin99pal](https://github.com/Edwin99pal)<br />
 
-## Proyecto: Smart shelf 
+## Proyecto: Smart Shelf 
 Smart Shelf es un sistema de control y monitoreo de estanterías en tiendas como supermercados y minimercados. Smart Shelf implementa etiquetas de precio electrónicas donde se encuentran el precio y la información de los productos. Se implementa un monitoreo de los estantes utilizando cámaras y sensores de distancia con tecnologías de ultrasonido y láser, con esta información notificará cuando sea necesario reaprovisionar los productos en una estantería específica o cuando un producto esté ubicado en el estante incorrecto. Por medio de un sitio web, la persona encargada de la tienda puede actualizar la información de las etiquetas de manera remota. Se puede consultar también tendencias de precios e información sobre los productos que se agotan con mayor frecuencia en las estanterías, teniendo en cuenta los días y las horas en las que los clientes los retiran.
 
 ### Arquitectura de alto nivel
