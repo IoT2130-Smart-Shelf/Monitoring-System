@@ -170,16 +170,14 @@ def downloadDataDB():
     dataDict = {}
     token = "/t/"
     for dataT in data['feeds']:
-        print("\nH\n")
         listData = dataT['field5'].split(token)
-        print("Lista: ",listData)
-        dataDict['Cantidad'] = listData[0]
+        dataDict['Cantidad'] = int(listData[0])
         dataDict['Fabricante'] = listData[1]
-        dataDict['Id'] = listData[2]
+        dataDict['Id'] = int(listData[2])
         dataDict['Imagen'] = listData[3]
         dataDict['Nombre'] = listData[4]
-        dataDict['Precio'] = listData[5]
-        dataDict['Tamano'] = listData[6]
+        dataDict['Precio'] = int(listData[5])
+        dataDict['Tamano'] = int(listData[6])
         dataDict['UnidadMedida'] = listData[7]
         producto = Producto(dataDict)
         productos.append(producto)
