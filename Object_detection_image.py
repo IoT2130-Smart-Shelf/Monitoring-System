@@ -19,6 +19,9 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from firebase import firebase
 import time
+from time import sleep
+import requests
+import paho.mqtt.publish as publish
 
 firebaseDB= firebase.FirebaseApplication("https://smart-shelf-44c69-default-rtdb.firebaseio.com/", None)
 # Definition of classes
@@ -99,6 +102,8 @@ def printit():
     None.
 
     '''
+    camera = PiCamera()
+    camera.rotation = 180   # rotacion de la imagen tomada
     # Se realiza la captura de la imagen
     img_path = '/home/pi/Desktop/ImagenesEstante/EstanteDD.jpg'
     camera.capture(img_path)
@@ -130,11 +135,70 @@ def sendAlert(email_string, alerta):
         server.login(email_from, password)
         server.sendmail(email_from, email_to, message)
 
-camera = PiCamera()
-camera.rotation = 180   # rotacion de la imagen tomada
+def sendFlag():
+    tTransport = "websockets" # Protocol comunication
+    tTLS = {'ca_certs':"/etc/ssl/certs/ca-certificates.crt",'tls_version':ssl.PROTOCOL_TLSv1} # Security for comunication by MQTT
+    tPort = 443 # Port for MQTT
+    channelID = "1579372" # Channel ID of ThingSpeak
+    writeApiKey = "A444YRSEAZKLS3KB" # Write API Key of ThingSpeak
+    mqttHost = "mqtt.thingspeak.com" # Host of ThingSpeak
+    topic = "channels/" + channelID + "/publish/" + writeApiKey # Topic of MQTT for ThingSpeak
+
+    # build the payload string
+    tPayload = "field1=" + str(1)
+
+    # attempt to publish this data to the topic
+    try:
+        publish.single(topic, payload=tPayload, hostname=mqttHost, port=tPort, tls=tTLS, transport=tTransport)
+        return "bandera bajada"
+    except (Exception):
+        return "Hubo un error al publicar los datos."
+
+def receiveFlag():
+    URL_FLAG = "https://api.thingspeak.com/channels/1579372/fields/1.json?api_key=EKAFOKYZTBQ3DUKL&results=1"
+    r = requests.get(url = URL_FLAG)
+    data = r.json() # extracting data in json format
+    return data['feeds'][0]['field1']
+
+downloadDataDB()
+URL = "https://api.thingspeak.com/update.json?api_key=75RJHS14YYDV4XEU&/json"
+initial_time = time.perf_counter()
+
+token = "/t/"
+for prod in productos:
+    message = str(prod.cantidad) + token + str(prod.fabricante) + token + str(prod.id) + token + str(prod.imagen) + token + str(prod.nombre) + token + str(prod.precio) + token + str(prod.tamano) + token + str(prod.unidadMedida)
+    PARAMS = { "field1": message}
+    # sending post request and saving the response as response object
+    r = requests.post(url = URL, params = PARAMS)
+    # extracting data in json format
+    data = r.json()
+    print(data)
+    print("Record sent to ThingSpeak")
+    sleep(20)
+# api-endpoint
+cap_time_init = time.perf_counter() 
 while True:
     
+    end_time = time.perf_counter()
+    if(end_time-initial_time >40):
+        initial_time = end_time
+        flag_control = receiveFlag()
 
+        if(flag_control == 2):
+            downloadDataDB()
+            token = "/t/"
+            for prod in productos:
+                message = str(prod.cantidad) + token + str(prod.fabricante) + token + str(prod.id) + token + str(prod.imagen) + token + str(prod.nombre) + token + str(prod.precio) + token + str(prod.tamano) + token + str(prod.unidadMedida)
+                PARAMS = { "field1": message}
+                # sending post request and saving the response as response object
+                r = requests.post(url = URL, params = PARAMS)
+                # extracting data in json format
+                data = r.json()
+                print(data)
+                print("Record sent to ThingSpeak")
+                sleep(20)
+            sendFlag()
+    
     #get product list
     downloadDataDB()
     prod_list = []
@@ -287,7 +351,7 @@ while True:
     with open("last_shelf.jpg", "rb") as f:
         dbx.files_upload(f.read(), '/Smart Shelf/last_shelf.jpg', mute = True, mode=dropbox.files.WriteMode.overwrite)
 
-    time.sleep(300)
+    sleep(120)
 
 '''
 # All the results have been drawn on the frame, so it's time to display it.
