@@ -157,6 +157,31 @@ def send_mqtt_thingsSpeak(distanceSoundOne, distanceSoundTwo, distanceSoundThree
     except (Exception):
         return "Hubo un error al publicar los datos."
 
+def sendFlag():
+    tTransport = "websockets" # Protocol comunication
+    tTLS = {'ca_certs':"/etc/ssl/certs/ca-certificates.crt",'tls_version':ssl.PROTOCOL_TLSv1} # Security for comunication by MQTT
+    tPort = 443 # Port for MQTT
+    channelID = "1481979" # Channel ID of ThingSpeak
+    writeApiKey = "R6KP5RUYDZOS6XKO" # Write API Key of ThingSpeak
+    mqttHost = "mqtt.thingspeak.com" # Host of ThingSpeak
+    topic = "channels/" + channelID + "/publish/" + writeApiKey # Topic of MQTT for ThingSpeak
+
+    # build the payload string
+    tPayload = "field4=" + str(0)
+
+    # attempt to publish this data to the topic
+    try:
+        publish.single(topic, payload=tPayload, hostname=mqttHost, port=tPort, tls=tTLS, transport=tTransport)
+        return "Datos enviados"
+    except (Exception):
+        return "Hubo un error al publicar los datos."
+
+def receiveFlag():
+    URL_FLAG = "https://api.thingspeak.com/channels/1481979/fields/4.json?api_key=OMYOWXFY0A7RIFJB&results=1"
+    r = requests.get(url = URL_FLAG)
+    data = r.json() # extracting data in json format
+    return data['feeds'][0]['field4']
+
 #   Function: downloadDataDB() 
 #   Purpose: Download data of productos from Firebase Realtime DB
 #   Argument:
@@ -164,12 +189,20 @@ def send_mqtt_thingsSpeak(distanceSoundOne, distanceSoundTwo, distanceSoundThree
 #   Return:
 #       void
 def downloadDataDB():
+    sendFlag()
+    cantProducts = []
+    if len(productos) == 0:
+        cantProducts.append(0)
+        cantProducts.append(0)
+        cantProducts.append(0)
+    else:
+        for pro in productos:
+            cantProducts.append(pro.cantidad)
     productos.clear()
     r = requests.get(url = URL)
     data = r.json() # extracting data in json format
     dataDict = {}
     token = "/t/"
-    
     for dataT in data['feeds']:
         if dataT['field5'] != None:
             listData = dataT['field5'].split(token)
@@ -182,6 +215,8 @@ def downloadDataDB():
             dataDict['Tamano'] = int(listData[6])
             dataDict['UnidadMedida'] = listData[7]
             producto = Producto(dataDict)
+            if cantProducts[producto.id] != 0:
+                producto.cantidad = cantProducts[producto.id]
             productos.append(producto)
 
 def sendAlert(email_string, alerta):
@@ -206,25 +241,20 @@ def sendAlert(email_string, alerta):
 #   Return:
 #       void
 def sendtoscreen(nscreen):
-
     if nscreen == 2:
         #SELECT Y0
         GPIO.output(SELECT_A, GPIO.LOW)
         GPIO.output(SELECT_B, GPIO.LOW)
-
     if nscreen == 1:
         #SELECT Y1
         GPIO.output(SELECT_A, GPIO.HIGH)
         GPIO.output(SELECT_B, GPIO.LOW)
-
     if nscreen == 0:
         #SELECT Y2
         GPIO.output(SELECT_A, GPIO.LOW)
         GPIO.output(SELECT_B, GPIO.HIGH)
 
-
 con = serial.Serial(
-
     port='/dev/ttyS0',
     baudrate=9600,
     parity=serial.PARITY_NONE,
@@ -232,21 +262,22 @@ con = serial.Serial(
     bytesize=serial.EIGHTBITS,
 )
 
-
 downloadDataDB() # download data from firebase first time
 #Set end of file
-eof = b'"\xFF\xFF\xFF'
-for pr in productos:
-    data = [pr.nombre,pr.precio,pr.tamano,pr.unidadMedida]
-    print(data)
-    time.sleep(0.1)
-    sendtoscreen(pr.id)
-    #write text to each field
-    con.write(b'name.txt="' + str(data[0]).encode() + eof)
-    con.write(b'price.txt="' + str(data[1]).encode() + eof)
-    con.write(b'size.txt="' + str(data[2]).encode() + eof)
-    con.write(b'unity.txt="' + str(data[3]).encode() + eof)
+def sendScreens():
+    eof = b'"\xFF\xFF\xFF'
+    for pr in productos:
+        data = [pr.nombre,pr.precio,pr.tamano,pr.unidadMedida]
+        print(data)
+        time.sleep(0.1)
+        sendtoscreen(pr.id)
+        #write text to each field
+        con.write(b'name.txt="' + str(data[0]).encode() + eof)
+        con.write(b'price.txt="' + str(data[1]).encode() + eof)
+        con.write(b'size.txt="' + str(data[2]).encode() + eof)
+        con.write(b'unity.txt="' + str(data[3]).encode() + eof)
 
+sendScreens()
 
 # Initial Measure
 distance_laser_initial = laser_linearization(laser_sensor.range)
@@ -260,8 +291,10 @@ print("Init one:", distance_ultrasound_one_prev)
 print("Init two:", distance_ultrasound_two_prev)
 print("Init three:", distance_ultrasound_three_prev)
 initial_time = time.perf_counter()
-
+initial_time_db = time.perf_counter()
+initial_time_flag = time.perf_counter()
 distance_to_back = 26
+flag_control = receiveFlag()
 
 while True:
     try:
@@ -270,15 +303,23 @@ while True:
         # Read laser sensor
         distance_laser = laser_linearization(laser_sensor.range)
 
+        end_time_flag = time.perf_counter()
+        if end_time_flag - initial_time_flag > 40:
+            flag_control = receiveFlag()
+
+        end_time_db = time.perf_counter()
+        if end_time_db - initial_time_db > 600 or flag_control == 1: # each 10 minutes in prototype
+            downloadDataDB()
+            sendScreens()
+            flag_control = 0
+
         end_time = time.perf_counter()
-        if end_time - initial_time > 120:
+        if end_time - initial_time > 120:  # each 2 minutes in prototype
             initial_time = end_time
-            # Send data to thingSpeak by mqtt
-            print(send_mqtt_thingsSpeak(productos[0].cantidad,productos[1].cantidad,productos[2].cantidad))
+            print(send_mqtt_thingsSpeak(productos[0].cantidad,productos[1].cantidad,productos[2].cantidad)) # Send data to thingSpeak by mqtt
 
         if distance_laser < distance_laser_initial_2 - 5:
             print("Laser Sensor Range: {0}cm".format(distance_laser))
-
             # Read ultrasound sensor one
             distance_ultrasound_one = readUltraSoundSensor(TRIG_ONE, ECHO_ONE)
             print("Distance Ultrasound One: ", distance_ultrasound_one," cm")
@@ -301,7 +342,6 @@ while True:
                 email_string = "Hola!\n\nSmart Shelf le avisa que la " + productos[1].nombre + " esta agotada.\n\nGracias por ser parte de nosotros"
                 sendAlert(email_string, 1)
             distance_ultrasound_two_prev = distance_ultrasound_two
-
             # Read ultrasound sensor three
             distance_ultrasound_three = readUltraSoundSensor(TRIG_THREE, ECHO_THREE)
             print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
