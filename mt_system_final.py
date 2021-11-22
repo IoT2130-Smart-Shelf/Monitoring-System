@@ -40,8 +40,6 @@ class Producto:
         print("    UnidadMedida =", end=" ")
         return self.unidadMedida
 
-# Use DB ThingsSpeaks
-URL = "https://api.thingspeak.com/channels/1481979/fields/5.json?api_key=OMYOWXFY0A7RIFJB"
 productos = []
 
 # Time limit of data transfer to ThingSpeak
@@ -161,13 +159,13 @@ def sendFlag():
     tTransport = "websockets" # Protocol comunication
     tTLS = {'ca_certs':"/etc/ssl/certs/ca-certificates.crt",'tls_version':ssl.PROTOCOL_TLSv1} # Security for comunication by MQTT
     tPort = 443 # Port for MQTT
-    channelID = "1481979" # Channel ID of ThingSpeak
-    writeApiKey = "R6KP5RUYDZOS6XKO" # Write API Key of ThingSpeak
+    channelID = "1579372" # Channel ID of ThingSpeak
+    writeApiKey = "A444YRSEAZKLS3KB" # Write API Key of ThingSpeak
     mqttHost = "mqtt.thingspeak.com" # Host of ThingSpeak
     topic = "channels/" + channelID + "/publish/" + writeApiKey # Topic of MQTT for ThingSpeak
 
     # build the payload string
-    tPayload = "field4=" + str(2)
+    tPayload = "field1=" + str(0)
 
     # attempt to publish this data to the topic
     try:
@@ -177,10 +175,10 @@ def sendFlag():
         return "Hubo un error al publicar los datos."
 
 def receiveFlag():
-    URL_FLAG = "https://api.thingspeak.com/channels/1481979/fields/4.json?api_key=OMYOWXFY0A7RIFJB&results=1"
+    URL_FLAG = "https://api.thingspeak.com/channels/1579372/fields/1.json?api_key=EKAFOKYZTBQ3DUKL&results=1"
     r = requests.get(url = URL_FLAG)
     data = r.json() # extracting data in json format
-    return data['feeds'][0]['field4']
+    return data['feeds'][0]['field1']
 
 #   Function: downloadDataDB() 
 #   Purpose: Download data of productos from Firebase Realtime DB
@@ -199,13 +197,15 @@ def downloadDataDB():
         for pro in productos:
             cantProducts.append(pro.cantidad)
     productos.clear()
+    # Use DB ThingsSpeaks
+    URL = "https://api.thingspeak.com/channels/1579378/fields/1.json?api_key=1UYLSLU7P06LTL8A&results=3"
     r = requests.get(url = URL)
     data = r.json() # extracting data in json format
     dataDict = {}
     token = "/t/"
     for dataT in data['feeds']:
-        if dataT['field5'] != None:
-            listData = dataT['field5'].split(token)
+        if dataT['field1'] != None:
+            listData = dataT['field1'].split(token)
             dataDict['Cantidad'] = int(listData[0])
             dataDict['Fabricante'] = listData[1]
             dataDict['Id'] = int(listData[2])
