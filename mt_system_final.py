@@ -305,10 +305,12 @@ while True:
 
         end_time_flag = time.perf_counter()
         if end_time_flag - initial_time_flag > 40:
+            initial_time_flag = end_time_flag
             flag_control = receiveFlag()
 
         end_time_db = time.perf_counter()
         if end_time_db - initial_time_db > 600 or flag_control == 1: # each 10 minutes in prototype
+            initial_time_db = end_time_db
             downloadDataDB()
             sendScreens()
             flag_control = 0
