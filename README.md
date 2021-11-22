@@ -25,8 +25,9 @@ El funcionamiento de la cámara se implementó con un módulo de cámara conecta
 Para la Raspberry Pi 3B+ se necesita instalar dependencias en Python:
 
 `python3 -m pip install paho-mqtt`
+
 `python3 -m pip install adafruit-circuitpython-vl53l0x`
 
-Para el detector de objetos, se siguieron las instrucciones del [repositorio de EdjeElectronics](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-on-the-Raspberry-Pi) para utilizar la API de detección de objetos de Tensorflow. Se entrenó un detector según se indica en [otro repositorio](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10) parte de esta serie de tutoriales, con imágenes de los productos utilizados en el prototipo. Los archivos necesarios para utilizar el detector entrenado para el prototipo se encuentran en [este enlace](https://www.dropbox.com/sh/scf9e9j9fpet1ys/AAAKz_HdsfjLn25Vv2Q1a90la?dl=0)
+Para el detector de objetos, se siguieron las instrucciones del [repositorio de EdjeElectronics](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-on-the-Raspberry-Pi) para utilizar la API de detección de objetos de Tensorflow. Se entrenó un detector según se indica en [otro repositorio](https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10) parte de esta serie de tutoriales, con imágenes de los productos utilizados en el prototipo. Los archivos necesarios para utilizar el detector entrenado para el prototipo se encuentran en [este enlace](https://www.dropbox.com/sh/scf9e9j9fpet1ys/AAAKz_HdsfjLn25Vv2Q1a90la?dl=0). El detector se entrenó en un computador con Windows 10 y se utiliza en la Raspberry Pi 4. El script correspondiente a esta utilidad es Object_detection_image.py
 
 
