@@ -169,18 +169,20 @@ def downloadDataDB():
     data = r.json() # extracting data in json format
     dataDict = {}
     token = "/t/"
+    
     for dataT in data['feeds']:
-        listData = dataT['field5'].split(token)
-        dataDict['Cantidad'] = int(listData[0])
-        dataDict['Fabricante'] = listData[1]
-        dataDict['Id'] = int(listData[2])
-        dataDict['Imagen'] = listData[3]
-        dataDict['Nombre'] = listData[4]
-        dataDict['Precio'] = int(listData[5])
-        dataDict['Tamano'] = int(listData[6])
-        dataDict['UnidadMedida'] = listData[7]
-        producto = Producto(dataDict)
-        productos.append(producto)
+        if dataT['field5'] != None:
+            listData = dataT['field5'].split(token)
+            dataDict['Cantidad'] = int(listData[0])
+            dataDict['Fabricante'] = listData[1]
+            dataDict['Id'] = int(listData[2])
+            dataDict['Imagen'] = listData[3]
+            dataDict['Nombre'] = listData[4]
+            dataDict['Precio'] = int(listData[5])
+            dataDict['Tamano'] = int(listData[6])
+            dataDict['UnidadMedida'] = listData[7]
+            producto = Producto(dataDict)
+            productos.append(producto)
 
 def sendAlert(email_string, alerta):
     if alerta == 2:
@@ -243,15 +245,18 @@ downloadDataDB() # download data from firebase first time
 
 # Initial Measure
 distance_laser_initial = laser_linearization(laser_sensor.range)
+distance_laser_initial_2 = laser_linearization(laser_sensor.range)
 distance_laser_prev = distance_laser_initial
-distance_ultrasound_one_initial = readUltraSoundSensor(TRIG_ONE, ECHO_ONE)
-distance_ultrasound_one_prev = distance_ultrasound_one_initial
-distance_ultrasound_two_initial = readUltraSoundSensor(TRIG_TWO, ECHO_TWO)
-distance_ultrasound_two_prev = distance_ultrasound_two_initial
-distance_ultrasound_three_initial = readUltraSoundSensor(TRIG_THREE, ECHO_THREE)
-distance_ultrasound_three_prev = distance_ultrasound_three_initial
-
+distance_ultrasound_one_prev = readUltraSoundSensor(TRIG_ONE, ECHO_ONE)
+distance_ultrasound_two_prev = readUltraSoundSensor(TRIG_TWO, ECHO_TWO)
+distance_ultrasound_three_prev = readUltraSoundSensor(TRIG_THREE, ECHO_THREE)
+print("Init laser:", distance_laser_initial_2)
+print("Init one:", distance_ultrasound_one_prev)
+print("Init two:", distance_ultrasound_two_prev)
+print("Init three:", distance_ultrasound_three_prev)
 initial_time = time.perf_counter()
+
+distance_to_back = 26
 
 while True:
     try:
@@ -266,26 +271,27 @@ while True:
             # Send data to thingSpeak by mqtt
             print(send_mqtt_thingsSpeak(productos[0].cantidad,productos[1].cantidad,productos[2].cantidad))
 
-        if distance_laser < 64:
+        if distance_laser < distance_laser_initial_2 - 5:
             print("Laser Sensor Range: {0}cm".format(distance_laser))
 
             # Read ultrasound sensor one
             distance_ultrasound_one = readUltraSoundSensor(TRIG_ONE, ECHO_ONE)
             print("Distance Ultrasound One: ", distance_ultrasound_one," cm")
+            print("Dif prev: ", distance_ultrasound_one - distance_ultrasound_one_prev)
             if(distance_ultrasound_one - distance_ultrasound_one_prev > 2):
                 productos[0].cantidad -= 1
-            if((distance_ultrasound_one_initial - 1 < distance_ultrasound_one) and  (distance_ultrasound_one < distance_ultrasound_one_initial +1) and (productos[0].cantidad < 2)):
+            if((distance_to_back - 1.5 < distance_ultrasound_one) and  (distance_ultrasound_one < distance_to_back +1.5) or (productos[0].cantidad < 2)):
                 productos[0].cantidad = 0
                 email_string = "Hola!\n\nSmart Shelf le avisa que la " + productos[0].nombre + " esta agotada.\n\nGracias por ser parte de nosotros"
                 sendAlert(email_string, 1)
             distance_ultrasound_one_prev = distance_ultrasound_one
-
+            print("Dif one: ", distance_ultrasound_one_prev)
             # Read ultrasound sensor two
             distance_ultrasound_two = readUltraSoundSensor(TRIG_TWO, ECHO_TWO)
             print("Distance Ultrasound Two: ", distance_ultrasound_two," cm")
             if(distance_ultrasound_two - distance_ultrasound_two_prev > 2):
                 productos[1].cantidad -= 1
-            if((distance_ultrasound_two_initial - 1 < distance_ultrasound_two) and  (distance_ultrasound_two < distance_ultrasound_two_initial +1) and (productos[1].cantidad < 2)):
+            if((distance_to_back - 1.5 < distance_ultrasound_two) and  (distance_ultrasound_two < distance_to_back +1) or (productos[1].cantidad < 2)):
                 productos[1].cantidad = 0
                 email_string = "Hola!\n\nSmart Shelf le avisa que la " + productos[1].nombre + " esta agotada.\n\nGracias por ser parte de nosotros"
                 sendAlert(email_string, 1)
@@ -296,7 +302,7 @@ while True:
             print("Distance Ultrasound Three: ", distance_ultrasound_three," cm")
             if(distance_ultrasound_three - distance_ultrasound_three_prev > 2):
                 productos[2].cantidad -= 1
-            if((distance_ultrasound_three_initial - 1 < distance_ultrasound_three) and  (distance_ultrasound_three < distance_ultrasound_three_initial +1) and (productos[2].cantidad < 2)):
+            if((distance_to_back - 1.5 < distance_ultrasound_three) and  (distance_ultrasound_three < distance_to_back +1.5) or (productos[2].cantidad < 2)):
                 productos[2].cantidad = 0
                 email_string = "Hola!\n\nSmart Shelf le avisa que la " + productos[2].nombre + " esta agotada.\n\nGracias por ser parte de nosotros"
                 sendAlert(email_string, 1)
