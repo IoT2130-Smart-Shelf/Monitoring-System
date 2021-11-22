@@ -207,17 +207,17 @@ def sendAlert(email_string, alerta):
 #       void
 def sendtoscreen(nscreen):
 
-    if nscreen == 3:
+    if nscreen == 2:
         #SELECT Y0
         GPIO.output(SELECT_A, GPIO.LOW)
         GPIO.output(SELECT_B, GPIO.LOW)
 
-    if nscreen == 2:
+    if nscreen == 1:
         #SELECT Y1
         GPIO.output(SELECT_A, GPIO.HIGH)
         GPIO.output(SELECT_B, GPIO.LOW)
 
-    if nscreen == 1:
+    if nscreen == 0:
         #SELECT Y2
         GPIO.output(SELECT_A, GPIO.LOW)
         GPIO.output(SELECT_B, GPIO.HIGH)
@@ -231,17 +231,22 @@ con = serial.Serial(
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
 )
-#Set end of file
-eof = b'"\xFF\xFF\xFF'
-data = ['Chocoramo','$1500','30','g']
-sendtoscreen(3)
-#write text to each field
-con.write(b'name.txt="' + str(data[0]).encode() + eof)
-con.write(b'price.txt="' + str(data[1]).encode() + eof)
-con.write(b'size.txt="' + str(data[2]).encode() + eof)
-con.write(b'unit.txt="' + str(data[3]).encode() + eof)
+
 
 downloadDataDB() # download data from firebase first time
+#Set end of file
+eof = b'"\xFF\xFF\xFF'
+for pr in productos:
+    data = [pr.nombre,pr.precio,pr.tamano,pr.unidadMedida]
+    print(data)
+    time.sleep(0.1)
+    sendtoscreen(pr.id)
+    #write text to each field
+    con.write(b'name.txt="' + str(data[0]).encode() + eof)
+    con.write(b'price.txt="' + str(data[1]).encode() + eof)
+    con.write(b'size.txt="' + str(data[2]).encode() + eof)
+    con.write(b'unity.txt="' + str(data[3]).encode() + eof)
+
 
 # Initial Measure
 distance_laser_initial = laser_linearization(laser_sensor.range)
