@@ -10,9 +10,14 @@ Sistema de monitoreo para el control de los productos de una estantería para et
 **Carolina María Burgos Anillo** - *Equipo principal* - [cmba-alt ](https://github.com/cmba-alt)<br />
 **Edwin Alejandro Caidedo Palacios** - *Equipo principal* - [Edwin99pal](https://github.com/Edwin99pal)<br />
 
+## Implementación
+
+El sistema de monitoreo se compone de dos partes principales: un arreglo de sensores para llevar el conteo de productos en el estante y una cámara para detectar productos mal ubicados. El arreglo de sensores viene acompañado de las pantallas Nextion para colocar la información de las etiquetas, todo esto conectado a una Raspberry Pi 3B+
+El funcionamiento de la cámara se implementó con un módulo de cámara conectado a una Raspberry Pi 4, en la cual se corre un modelo de detección de objetos.
+
 ## Instrucciones de uso
 Para usarlo necesitas instalar dependencias en Python:<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;paramiko <br />
+    
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;paho-mqtt <br />
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adafruit-circuitpython-vl53l0x <br />
 <br />
