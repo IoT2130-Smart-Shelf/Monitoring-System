@@ -305,6 +305,7 @@ while True:
 
         end_time_flag = time.perf_counter()
         if end_time_flag - initial_time_flag > 40:
+            print("solicite bandera")
             initial_time_flag = end_time_flag
             flag_control = receiveFlag()
 
