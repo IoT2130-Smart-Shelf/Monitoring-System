@@ -178,11 +178,12 @@ for prod in productos:
 # api-endpoint
 cap_time_init = time.perf_counter() 
 while True:
-    
     end_time = time.perf_counter()
     if(end_time-initial_time >40):
         initial_time = end_time
         flag_control = receiveFlag()
+
+        print("Flag_control: ", flag_control)
 
         if(flag_control == 2):
             downloadDataDB()
@@ -200,7 +201,7 @@ while True:
             sendFlag()
     
     #get product list
-    downloadDataDB()
+    #downloadDataDB()
     prod_list = []
     for pr in productos:
         prod_list.append([pr.id,pr.nombre])
