@@ -175,6 +175,7 @@ for prod in productos:
     print(data)
     print("Record sent to ThingSpeak")
     sleep(20)
+sendFlag()
 # api-endpoint
 cap_time_init = time.perf_counter() 
 while True:
